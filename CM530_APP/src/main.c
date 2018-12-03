@@ -5,7 +5,7 @@
 //#define SENSOR
 
 //#define DEBUG_BIOLOIDEX
-
+#define M_PI           3.14159265358979323846
 
 #include "stm32f10x_lib.h"
 #include "wiring.h"
@@ -276,6 +276,12 @@ bool g_fEnableServos = TRUE;
 short CoxaAngle1[CNT_LEGS];   //Actual Angle of the horizontal hip, decimals = 1
 short FemurAngle1[CNT_LEGS];   //Actual Angle of the vertical hip, decimals = 1
 short TibiaAngle1[CNT_LEGS];   //Actual Angle of the knee, decimals = 1
+
+
+//[RADIANS]
+short CoxaAngle1_rad[CNT_LEGS];   //Actual Angle of the horizontal hip, decimals = 1
+short FemurAngle1_rad[CNT_LEGS];   //Actual Angle of the vertical hip, decimals = 1
+short TibiaAngle1_rad[CNT_LEGS];   //Actual Angle of the knee, decimals = 1
 
 //--------------------------------------------------------------------
 //[POSITIONS SINGLE LEG CONTROL]
@@ -553,7 +559,7 @@ int main(void) {
 
 			//Do IK for all Right legs
 
-			for (LegIndex = 0; LegIndex < (CNT_LEGS / 2); LegIndex++) {
+		for (LegIndex = 0; LegIndex < (CNT_LEGS / 2); LegIndex++) {
 				DoBackgroundProcess();
 				BodyFK(
 						-LegPosX[LegIndex] + g_InControlState.BodyPos.x
@@ -563,6 +569,7 @@ int main(void) {
 						LegPosY[LegIndex] + g_InControlState.BodyPos.y
 						+ GaitPosY[LegIndex] - TotalTransY,
 						GaitRotY[LegIndex], LegIndex);
+
 
 				LegIK(
 						LegPosX[LegIndex] - g_InControlState.BodyPos.x + BodyFKPosX
@@ -584,6 +591,7 @@ int main(void) {
 						LegPosY[LegIndex] + g_InControlState.BodyPos.y
 						+ GaitPosY[LegIndex] - TotalTransY,
 						GaitRotY[LegIndex], LegIndex);
+
 				LegIK(
 						LegPosX[LegIndex] + g_InControlState.BodyPos.x - BodyFKPosX
 						+ GaitPosX[LegIndex] - TotalTransX,
@@ -592,6 +600,8 @@ int main(void) {
 						LegPosZ[LegIndex] + g_InControlState.BodyPos.z - BodyFKPosZ
 						+ GaitPosZ[LegIndex] - TotalTransZ, LegIndex);
 			}
+
+
 
 			//Check mechanical limits
 			CheckAngles();
@@ -829,6 +839,8 @@ void StartUpdateServos() {
 
 	byte checksum = checkSumatory(joint_state, pos);
 	pcu_put_byte(checksum);
+	joint_state[pos++]= checksum;
+	//mDelay(pos);
 
 }
 
@@ -1372,7 +1384,7 @@ void BodyFK(short PosX, short PosZ, short PosY, short RotationY, byte BodyIKLeg)
 //--------------------------------------------------------------------
 void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 		byte LegIKLegNr) {
-	unsigned long IKSW2;       //Length between Shoulder and Wrist, decimals = 2
+	unsigned long IKSW2;      //Length between Shoulder and Wrist, decimals = 2
 	unsigned long IKA14; //Angle of the line S>W with respect to the ground in radians, decimals = 4
 	unsigned long IKA24; //Angle of the line S>W with respect to the femur in radians, decimals = 4
 	short IKFeetPosXZ;    //Diagonal direction from Input X and Z
@@ -1384,10 +1396,14 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 	long Temp2;
 	long T3;
 
+
+
 	//Calculate IKCoxaAngle and IKFeetPosXZ
 	GetATan2(IKFeetPosX, IKFeetPosZ);
 	CoxaAngle1[LegIKLegNr] = (((long) Atan4 * 180) / 3141)
 			+ (short) pgm_read_word(&cCoxaAngle1[LegIKLegNr]);
+
+	//CoxaAngle1_rad[LegIKLegNr] = ((CoxaAngle1[LegIKLegNr] * 31416) / 180);
 
 	//Length between the Coxa and tars [foot]
 	IKFeetPosXZ = XYhyp2 / c2DEC;
@@ -1413,8 +1429,12 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 	T3 = Temp1 / (Temp2 / c4DEC);
 	IKA24 = GetArcCos(T3);
 
+
+
 	FemurAngle1[LegIKLegNr] = -(long) (IKA14 + IKA24) * 180
 			/ 3141+ 900 + CFEMURHORNOFFSET1(LegIKLegNr);  //Normal
+
+	//FemurAngle1_rad[LegIKLegNr] = ((FemurAngle1[LegIKLegNr] * 31416) / 180);
 
 	//IKTibiaAngle
 	Temp1 = ((((long) (byte) pgm_read_byte(&cFemurLength[LegIKLegNr])
@@ -1432,6 +1452,8 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 */
 	TibiaAngle1[LegIKLegNr] = -(1350 - (long) AngleRad4 * 180 / 3141
 			+ CTIBIAHORNOFFSET1(LegIKLegNr)); //!!!!!!!!!!!!145 instead of 1800
+
+	//TibiaAngle1_rad[LegIKLegNr] = ((TibiaAngle1[LegIKLegNr]*314116) / 180);
 
 	//Set the Solution quality
 	if (IKSW2
