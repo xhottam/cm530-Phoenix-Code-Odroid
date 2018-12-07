@@ -129,12 +129,12 @@ void BioloidControllerEx_writePose() {
 	dxl_set_txpacket_length((2 + 1) * poseSize + 4);
 	dxl_txrx_packet();
 	u16 CommStatus = dxl_get_result();
-#ifdef DEBUG_BIOLOIDEX
+/**#ifdef USING_PC_UART
 	if (CommStatus == DXL_RXSUCCESS)
 		PrintErrorCode();
 	else
 		PrintCommStatus(CommStatus);
-#endif
+#endif*/
 }
 
 /* set up for an interpolation from pose to nextpose over TIME

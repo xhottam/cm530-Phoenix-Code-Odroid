@@ -475,7 +475,7 @@ void CommanderInputController_ControlInput(void) {
 
 void Send_fake_feedback_Odroid(void){
 
-	u8 joint_state[50];
+	u8 joint_state[70];
 	int pos = 0;
 	joint_state[pos++]=0xFF;
 	std_putchar(0xFF);
@@ -487,20 +487,29 @@ void Send_fake_feedback_Odroid(void){
 			joint_state[pos++]=leg;
 			pcu_put_byte(leg);
 
-			joint_state[pos++]=dxl_get_lowbyte(512);
-			pcu_put_byte(dxl_get_lowbyte(512));
-			joint_state[pos++]=dxl_get_highbyte(512);
-			pcu_put_byte(dxl_get_highbyte(512));
+			joint_state[pos++]=1;
+			pcu_put_byte(1);
 
-			joint_state[pos++]=dxl_get_lowbyte(512);
-			pcu_put_byte(dxl_get_lowbyte(512));
-			joint_state[pos++]=dxl_get_highbyte(512);
-			pcu_put_byte(dxl_get_highbyte(512));
+			joint_state[pos++]=dxl_get_lowbyte(1);
+			pcu_put_byte(dxl_get_lowbyte(1));
+			joint_state[pos++]=dxl_get_highbyte(1);
+			pcu_put_byte(dxl_get_highbyte(1));
 
-			joint_state[pos++]=dxl_get_lowbyte(512);
-			pcu_put_byte(dxl_get_lowbyte(512));
-			joint_state[pos++]=dxl_get_highbyte(512);
-			pcu_put_byte(dxl_get_highbyte(512));
+			joint_state[pos++]=0;
+			pcu_put_byte(0);
+
+			joint_state[pos++]=dxl_get_lowbyte(394);
+			pcu_put_byte(dxl_get_lowbyte(394));
+			joint_state[pos++]=dxl_get_highbyte(394);
+			pcu_put_byte(dxl_get_highbyte(394));
+
+			joint_state[pos++]=1;
+			pcu_put_byte(1);
+
+			joint_state[pos++]=dxl_get_lowbyte(1);
+			pcu_put_byte(dxl_get_lowbyte(1));
+			joint_state[pos++]=dxl_get_highbyte(1);
+			pcu_put_byte(dxl_get_highbyte(1));
 			//OutputServoInfoForLeg(LegIndex,CoxaAngle1[LegIndex],FemurAngle1[LegIndex], TibiaAngle1[LegIndex]);
 	}
 
@@ -602,7 +611,7 @@ while (1) {
 			ext = pcu_rx_data_extra();
 			return 1;
 		}else{
-			//Send_fake_feedback_Odroid();
+			Send_fake_feedback_Odroid();
 		}
 
 	}

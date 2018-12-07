@@ -277,6 +277,9 @@ short CoxaAngle1[CNT_LEGS];   //Actual Angle of the horizontal hip, decimals = 1
 short FemurAngle1[CNT_LEGS];   //Actual Angle of the vertical hip, decimals = 1
 short TibiaAngle1[CNT_LEGS];   //Actual Angle of the knee, decimals = 1
 
+short CoxaAngle_Odroid[CNT_LEGS];   //Actual Angle of the horizontal hip, decimals = 1
+short FemurAngle_Odroid[CNT_LEGS];   //Actual Angle of the vertical hip, decimals = 1
+short TibiaAngle_Odroid[CNT_LEGS];   //Actual Angle of the knee, decimals = 1
 
 //[RADIANS]
 short CoxaAngle1_rad[CNT_LEGS];   //Actual Angle of the horizontal hip, decimals = 1
@@ -729,11 +732,6 @@ int main(void) {
 	return 0;
 }
 
-void readSensors(){
-
-
-}
-
 void setupPhoenix() {
 
 	g_fShowDebugPrompt = TRUE;
@@ -796,8 +794,9 @@ void StartUpdateServos() {
 	// First call off to the init...
 	BeginServoUpdate();    // Start the update
 
-	u8 joint_state[50];
+	u8 joint_state[70];
 	int pos = 0;
+    int signo = 0;
 	joint_state[pos++]=0xFF;
 	std_putchar(0xFF);
 	joint_state[pos++]=0xFF;
@@ -806,23 +805,51 @@ void StartUpdateServos() {
 	for (LegIndex = 0; LegIndex < CNT_LEGS; LegIndex++) {
 
 
-		    joint_state[pos++]=LegIndex;
-			pcu_put_byte(LegIndex);
+		joint_state[pos++]=LegIndex;
+		pcu_put_byte(LegIndex);
 
-			joint_state[pos++]=dxl_get_lowbyte(CoxaAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_lowbyte(CoxaAngle1[LegIndex]));
-			joint_state[pos++]=dxl_get_highbyte(CoxaAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_highbyte(CoxaAngle1[LegIndex]));
+		if (CoxaAngle1[LegIndex] < 0){
+			joint_state[pos++]=0;
+			pcu_put_byte(0);
+			signo = -1;
+		} else {
+			joint_state[pos++]=1;
+			pcu_put_byte(1);
+			signo = 1;
+		}
+		joint_state[pos++]=dxl_get_lowbyte(signo * (word)CoxaAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_lowbyte(signo * (word)CoxaAngle1[LegIndex]));
+		joint_state[pos++]=dxl_get_highbyte(signo * (word)CoxaAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_highbyte(signo * (word)CoxaAngle1[LegIndex]));
 
-			joint_state[pos++]=dxl_get_lowbyte(FemurAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_lowbyte(FemurAngle1[LegIndex]));
-			joint_state[pos++]=dxl_get_highbyte(FemurAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_highbyte(FemurAngle1[LegIndex]));
+		if (FemurAngle1[LegIndex] < 0){
+			joint_state[pos++]=0;
+			pcu_put_byte(0);
+			signo = -1;
+		} else {
+			joint_state[pos++]=1;
+			pcu_put_byte(1);
+			signo = 1;
+		}
+		joint_state[pos++]=dxl_get_lowbyte(signo * (word)FemurAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_lowbyte(signo * (word)FemurAngle1[LegIndex]));
+		joint_state[pos++]=dxl_get_highbyte(signo * (word)FemurAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_highbyte(signo * (word)FemurAngle1[LegIndex]));
 
-			joint_state[pos++]=dxl_get_lowbyte(TibiaAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_lowbyte(TibiaAngle1[LegIndex]));
-			joint_state[pos++]=dxl_get_highbyte(TibiaAngle1[LegIndex]);
-			pcu_put_byte(dxl_get_highbyte(TibiaAngle1[LegIndex]));
+		if (TibiaAngle1[LegIndex] < 0){
+			joint_state[pos++]=0;
+			pcu_put_byte(0);
+			signo = -1;
+		} else {
+			joint_state[pos++]=1;
+			pcu_put_byte(1);
+			signo = 1;
+		}
+		joint_state[pos++]=dxl_get_lowbyte(signo * (word)TibiaAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_lowbyte( signo * (word)TibiaAngle1[LegIndex]));
+		joint_state[pos++]=dxl_get_highbyte( signo *(word)TibiaAngle1[LegIndex]);
+		pcu_put_byte(dxl_get_highbyte( signo * (word)TibiaAngle1[LegIndex]));
+
 
 		OutputServoInfoForLeg(LegIndex,
 				cCoxaInv[LegIndex] ?
@@ -831,8 +858,6 @@ void StartUpdateServos() {
 						-FemurAngle1[LegIndex] : FemurAngle1[LegIndex],
 				cTibiaInv[LegIndex] ?
 						-TibiaAngle1[LegIndex] : TibiaAngle1[LegIndex]);
-
-
 
 		//OutputServoInfoForLeg(LegIndex,CoxaAngle1[LegIndex],FemurAngle1[LegIndex], TibiaAngle1[LegIndex]);
 	}
@@ -1403,7 +1428,8 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 	CoxaAngle1[LegIKLegNr] = (((long) Atan4 * 180) / 3141)
 			+ (short) pgm_read_word(&cCoxaAngle1[LegIKLegNr]);
 
-	//CoxaAngle1_rad[LegIKLegNr] = ((CoxaAngle1[LegIKLegNr] * 31416) / 180);
+	CoxaAngle_Odroid[LegIKLegNr] = (((long) Atan4 * 180) / 3141)
+					+ (short) pgm_read_word(&cCoxaAngle1[LegIKLegNr]);
 
 	//Length between the Coxa and tars [foot]
 	IKFeetPosXZ = XYhyp2 / c2DEC;
@@ -1434,7 +1460,8 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 	FemurAngle1[LegIKLegNr] = -(long) (IKA14 + IKA24) * 180
 			/ 3141+ 900 + CFEMURHORNOFFSET1(LegIKLegNr);  //Normal
 
-	//FemurAngle1_rad[LegIKLegNr] = ((FemurAngle1[LegIKLegNr] * 31416) / 180);
+	FemurAngle_Odroid[LegIKLegNr] =  -(long) (IKA14 + IKA24) * 180
+			/ 3141+ 900 + CFEMURHORNOFFSET1(LegIKLegNr);  //Normal
 
 	//IKTibiaAngle
 	Temp1 = ((((long) (byte) pgm_read_byte(&cFemurLength[LegIKLegNr])
@@ -1453,7 +1480,8 @@ void LegIK(short IKFeetPosX, short IKFeetPosY, short IKFeetPosZ,
 	TibiaAngle1[LegIKLegNr] = -(1350 - (long) AngleRad4 * 180 / 3141
 			+ CTIBIAHORNOFFSET1(LegIKLegNr)); //!!!!!!!!!!!!145 instead of 1800
 
-	//TibiaAngle1_rad[LegIKLegNr] = ((TibiaAngle1[LegIKLegNr]*314116) / 180);
+	TibiaAngle_Odroid[LegIKLegNr] = -(1350 - (long) AngleRad4 * 180 / 3141
+			+ CTIBIAHORNOFFSET1(LegIKLegNr)); //!!!!!!!!!!!!145 instead of 1800
 
 	//Set the Solution quality
 	if (IKSW2

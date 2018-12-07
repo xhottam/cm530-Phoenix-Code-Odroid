@@ -202,7 +202,8 @@ void BeginServoUpdate(void)    // Start the update
 //------------------------------------------------------------------------------------------
 
 
-void OutputServoInfoForLeg(byte LegIndex, short sCoxaAngle1, short sFemurAngle1,short sTibiaAngle1)
+void OutputServoInfoForLeg(byte LegIndex, short sCoxaAngle1, short sFemurAngle1,
+		short sTibiaAngle1)
 
 		{
 	word wCoxaSDV;        // Coxa value in servo driver units
@@ -322,7 +323,7 @@ void SetRegOnAllServos(u8 bReg, u8 bVal) {
 	dxl_txrx_packet();
 
 	u16 CommStatus = dxl_get_result();
-#ifdef DEBUG_BIOLOIDEX
+#ifdef USING_PC_UART
 	if (CommStatus == DXL_RXSUCCESS)
 		PrintErrorCode();
 	else
@@ -393,7 +394,7 @@ void CommitServoDriver(word wMoveTime) {
 		dxl_txrx_packet();
 
 			u16 CommStatus = dxl_get_result();
-#ifdef DEBUG_BIOLOIDEX
+#ifdef USING_PC_UART
 			if (CommStatus == DXL_RXSUCCESS)
 				PrintErrorCode();
 			else
