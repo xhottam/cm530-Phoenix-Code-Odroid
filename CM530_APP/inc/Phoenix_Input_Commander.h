@@ -487,8 +487,8 @@ void Send_fake_feedback_Odroid(void){
 			joint_state[pos++]=leg;
 			pcu_put_byte(leg);
 
-			joint_state[pos++]=1;
-			pcu_put_byte(1);
+				joint_state[pos++]=1;
+				pcu_put_byte(1);
 
 			joint_state[pos++]=dxl_get_lowbyte(1);
 			pcu_put_byte(dxl_get_lowbyte(1));
